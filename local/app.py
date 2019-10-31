@@ -9,14 +9,13 @@ import operator as op
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import re
-from IPython.display import Image
-from IPython.core.display import HTML
+# from IPython.display import Image
+# from IPython.core.display import HTML
 from time import sleep
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.xception import (
     Xception, preprocess_input, decode_predictions)
@@ -81,7 +80,23 @@ def images():
         for image in images: 
             image_urls.append(str(image['src']))
         image_df = pd.DataFrame({"image":image_urls})
+        
+        import numpy as np
+        import tensorflow as tf
 
+        from tensorflow.keras.preprocessing import image
+        from tensorflow.keras.applications.xception import (
+            Xception, preprocess_input, decode_predictions)
+
+        from PIL import Image
+        import requests
+        from io import BytesIO
+
+
+        model = Xception(
+            include_top=True,
+            weights='imagenet')
+        
         cnns = []
         model = Xception(include_top=True,weights='imagenet')
         for i in image_urls:
@@ -95,6 +110,9 @@ def images():
             predictions = model.predict(x)
             cnns.append(decode_predictions(predictions, top=1)[0][0][1])
         image_df["CNN"] = cnns
+        
+        from IPython.display import Image
+        from IPython.core.display import HTML
         
         def path_to_image_html(path):
             return '<img src="'+ path + '" width="300" >'
