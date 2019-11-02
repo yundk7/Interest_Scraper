@@ -105,7 +105,8 @@ def xception():
             include_top=True,
             weights='imagenet')
         
-        cnns = []
+        prds = []
+        pcts = []
         for i in image_urls:
             url = i
             response = requests.get(url)
@@ -115,9 +116,12 @@ def xception():
             x = np.expand_dims(x, axis=0)
             x = preprocess_input(x)
             predictions = model.predict(x)
-            cnns.append(decode_predictions(predictions, top=1)[0][0])
+            prds.append(decode_predictions(predictions, top=1)[0][0][1])
+            pcts.append(decode_predictions(predictions, top=1)[0][0][2])
 #             cnns.append(decode_predictions(predictions, top=3)[0])
-        image_df["CNN"] = cnns
+        image_df["predictions"] = prds
+        image_df["%"] = pcts
+        image_df.sort_values("%",ascending = False,inplace = True)
         
         from IPython.display import Image
         from IPython.core.display import HTML
@@ -167,7 +171,8 @@ def vgg19():
 
         model = VGG19(include_top=True, weights='imagenet')
         
-        cnns = []
+        prds = []
+        pcts = []
         for i in image_urls:
             url = i
             response = requests.get(url)
@@ -177,9 +182,12 @@ def vgg19():
             x = np.expand_dims(x, axis=0)
             x = preprocess_input(x)
             predictions = model.predict(x)
-            cnns.append(decode_predictions(predictions, top=1)[0][0])
+            prds.append(decode_predictions(predictions, top=1)[0][0][1])
+            pcts.append(decode_predictions(predictions, top=1)[0][0][2])
 #             cnns.append(decode_predictions(predictions, top=3)[0])
-        image_df["CNN"] = cnns
+        image_df["prediction"] = prds
+        image_df["%"] = pcts
+        image_df.sort_values("%",ascending = False, inplace = True)
         
         from IPython.display import Image
         from IPython.core.display import HTML
