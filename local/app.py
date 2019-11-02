@@ -8,7 +8,7 @@ import re
 import operator as op
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
-import re
+
 # from IPython.display import Image
 # from IPython.core.display import HTML
 from time import sleep
@@ -30,6 +30,8 @@ from tensorflow.keras.applications.vgg19 import (
     preprocess_input, 
     decode_predictions
 )
+import plotly as py
+import plotly.express as px
 
 pd.set_option('display.max_colwidth', -1)
 url = 'https://youtube.com'
@@ -132,13 +134,12 @@ def xception():
 #         print("Server received request for 'About' page...")
 #         return (image_df.to_html(escape=False ,formatters=dict(image=path_to_image_html)))
     
-    
+        gkey = "AIzaSyA-Rjp6nOeJp6815Xt1Kkuxc5XKMiKl_yA"
         depart =  request.form["depart"]
-        pois = image_df.head(3)["predictions"]
         target_radius = 1000
         
         records = pd.DataFrame()
-        target_list = str(pois).split(",")
+        target_list = list(image_df["predictions"])[0:5]
         targets = str(depart).split(",")
         for target in targets:
                 # Build the endpoint URL
@@ -193,12 +194,13 @@ def xception():
                         reviews = places_data["results"][int(n)]["user_ratings_total"]
                     except KeyError:
                         reviews = "NA"
-#                     try:
-#                         poi_coord = str(places_data["results"][int(n)]["geometry"]["location"]["lat"]) + "," + str(places_data["results"][int(n)]["geometry"]["location"]["lng"])
-# #                         dist = pd.read_html(f"http://boulter.com/gps/distance/?from={target_coordinates}&to={poi_coord}&units=k")
-# #                         distance = float(str(dist[1][1][1]).split(" ")[0])
-# #                     except IndexError or TimeoutError:
-# #                         distance = "NA"
+                    try:
+                        lat = places_data["results"][int(n)]["geometry"]["location"]["lat"]
+                        lon = places_data["results"][int(n)]["geometry"]["location"]["lng"]
+#                         dist = pd.read_html(f"http://boulter.com/gps/distance/?from={target_coordinates}&to={poi_coord}&units=k")
+#                         distance = float(str(dist[1][1][1]).split(" ")[0])
+                    except IndexError or TimeoutError:
+                        distance = "NA"
 #                         drive_url = f"https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins={target_coordinates}&destinations={poi_coord}&key=AIzaSyA-Rjp6nOeJp6815Xt1Kkuxc5XKMiKl_yA"
 #                         drive_res = requests.get(drive_url).json()
 #                         distance = drive_res["rows"][0]["elements"][0]["distance"]["value"]/1000
@@ -228,16 +230,22 @@ def xception():
                                              "reviews":reviews,
                                              "price":price,
                                              "link":link,
-                                            "address":[places_data["results"][int(n)]["vicinity"]]})
-#                                            "distance":distance,
+                                            "address":[places_data["results"][int(n)]["vicinity"]],
+                                           "lat":lat, "lon":lon})
 #                                             "drive":duration,
 #                                             "public":transit_dur,
 #                                             "walk":walk_dur})
                     records = records.append(content)
                     n+=1
         records.reset_index(drop = True,inplace = True)
-        records["link"]=records["link"].apply(lambda x: '<a href="https://www.google.com/maps/place/?q=place_id:{0}">link</a>'.format(x))
-        return (records.to_html(escape=False))
+#         records["link"]=records["link"].apply(lambda x: '<a href="https://www.google.com/maps/place/?q=place_id:{0}">link</a>'.format(x))
+#         return (records.to_html(escape=False))
+        px.set_mapbox_access_token("pk.eyJ1IjoidGl2bWU3IiwiYSI6ImNrMWEwZDVtNDI4Zm4zYm1vY3o3Z25zejEifQ._yTPkj3nXTzor72zIevLCQ")
+        fig = px.scatter_mapbox(records, lat="lat", lon="lon", color = "poi", hover_name="name",zoom = 13)
+        fig.update_layout(autosize=True,width=1500,height=750)
+        #                           ,margin=go.layout.Margin(l=50,r=50,b=100,t=100,pad=4))
+
+        return(py.offline.plot(fig,output_type="div"))
 
     return render_template("xception.html")
 
