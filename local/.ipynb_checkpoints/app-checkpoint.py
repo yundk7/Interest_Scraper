@@ -139,7 +139,7 @@ def xception():
         target_radius = 1000
         
         records = pd.DataFrame()
-        target_list = list(image_df["predictions"])[0:5]
+        target_list = list(set(image_df["predictions"]))[0:5]
         targets = str(depart).split(",")
         for target in targets:
                 # Build the endpoint URL
