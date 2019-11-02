@@ -124,6 +124,7 @@ def xception():
         image_df["predictions"] = prds
         image_df["%"] = pcts
         image_df.sort_values("%",ascending = False,inplace = True)
+        image_df.reset_index(drop=True,inplace=True)
         
 #         from IPython.display import Image
 #         from IPython.core.display import HTML
