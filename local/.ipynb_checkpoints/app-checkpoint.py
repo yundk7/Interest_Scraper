@@ -23,6 +23,14 @@ from PIL import Image
 import requests
 from io import BytesIO
 
+from tensorflow import keras
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg19 import (
+    VGG19, 
+    preprocess_input, 
+    decode_predictions
+)
+
 pd.set_option('display.max_colwidth', -1)
 url = 'https://youtube.com'
 
@@ -62,8 +70,8 @@ def home():
 
 # 4. Define what to do when a user hits the /about route
 
-@app.route("/images", methods=["GET", "POST"])
-def images():
+@app.route("/xception", methods=["GET", "POST"])
+def xception():
     if request.method == "POST":
         instaid = request.form["instaid"]
     
@@ -98,7 +106,6 @@ def images():
             weights='imagenet')
         
         cnns = []
-        model = Xception(include_top=True,weights='imagenet')
         for i in image_urls:
             url = i
             response = requests.get(url)
@@ -108,7 +115,8 @@ def images():
             x = np.expand_dims(x, axis=0)
             x = preprocess_input(x)
             predictions = model.predict(x)
-            cnns.append(decode_predictions(predictions, top=1)[0][0][1])
+            cnns.append(decode_predictions(predictions, top=1)[0][0])
+#             cnns.append(decode_predictions(predictions, top=3)[0])
         image_df["CNN"] = cnns
         
         from IPython.display import Image
@@ -120,8 +128,69 @@ def images():
         print("Server received request for 'About' page...")
         return (image_df.to_html(escape=False ,formatters=dict(image=path_to_image_html)))
 
-    return render_template("form.html")
+    return render_template("xception.html")
 
+@app.route("/vgg19", methods=["GET", "POST"])
+def vgg19():
+    if request.method == "POST":
+        instaid = request.form["instaid"]
+    
+        #scraping images with beautifulsoup
+        url = "https://www.instagram.com/" + instaid
+        browser = Browser('chrome')
+        browser.visit(url)
+        sleep(1)
+        bs = BeautifulSoup(browser.html, 'html.parser')
+
+        #finds all the images in website and puts url in df
+        images = bs.find_all('img', {'src':re.compile('.jpg')})
+        image_urls = []
+        for image in images: 
+            image_urls.append(str(image['src']))
+        image_df = pd.DataFrame({"image":image_urls})
+        
+        import numpy as np
+        import tensorflow as tf
+
+        from tensorflow import keras
+        from tensorflow.keras.preprocessing import image
+        from tensorflow.keras.applications.vgg19 import (
+            VGG19, 
+            preprocess_input, 
+            decode_predictions
+        )
+
+        from PIL import Image
+        import requests
+        from io import BytesIO
+
+
+        model = VGG19(include_top=True, weights='imagenet')
+        
+        cnns = []
+        for i in image_urls:
+            url = i
+            response = requests.get(url)
+            img = Image.open(BytesIO(response.content))
+            img = img.resize((224, 224), Image.NEAREST)
+            x = image.img_to_array(img)
+            x = np.expand_dims(x, axis=0)
+            x = preprocess_input(x)
+            predictions = model.predict(x)
+            cnns.append(decode_predictions(predictions, top=1)[0][0])
+#             cnns.append(decode_predictions(predictions, top=3)[0])
+        image_df["CNN"] = cnns
+        
+        from IPython.display import Image
+        from IPython.core.display import HTML
+        
+        def path_to_image_html(path):
+            return '<img src="'+ path + '" width="300" >'
+        
+        print("Server received request for 'About' page...")
+        return (image_df.to_html(escape=False ,formatters=dict(image=path_to_image_html)))
+
+    return render_template("vgg19.html")
 
 
 if __name__ == "__main__":
