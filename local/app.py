@@ -123,14 +123,121 @@ def xception():
         image_df["%"] = pcts
         image_df.sort_values("%",ascending = False,inplace = True)
         
-        from IPython.display import Image
-        from IPython.core.display import HTML
+#         from IPython.display import Image
+#         from IPython.core.display import HTML
         
-        def path_to_image_html(path):
-            return '<img src="'+ path + '" width="300" >'
+#         def path_to_image_html(path):
+#             return '<img src="'+ path + '" width="300" >'
         
-        print("Server received request for 'About' page...")
-        return (image_df.to_html(escape=False ,formatters=dict(image=path_to_image_html)))
+#         print("Server received request for 'About' page...")
+#         return (image_df.to_html(escape=False ,formatters=dict(image=path_to_image_html)))
+    
+    
+        depart =  request.form["depart"]
+        pois = image_df.head(3)["predictions"]
+        target_radius = 1000
+        
+        records = pd.DataFrame()
+        target_list = str(pois).split(",")
+        targets = str(depart).split(",")
+        for target in targets:
+                # Build the endpoint URL
+            target_url = (f'https://maps.googleapis.com/maps/api/geocode/json?address={target}&key={gkey}')
+            geo_data = requests.get(target_url).json()
+
+
+            target_adr = geo_data["results"][0]["formatted_address"]
+            lat = geo_data["results"][0]["geometry"]["location"]["lat"]
+            lng = geo_data["results"][0]["geometry"]["location"]["lng"]
+
+            target_coordinates = str(lat) + "," + str(lng)
+            
+            
+#             target_radius = 800
+            target_type = ""
+
+            # set up a parameters dictionary
+
+            for target_search in target_list:
+                params = {
+                    "location": target_coordinates,
+                    "keyword": target_search,
+                    "radius": target_radius,
+                    "type": target_type,
+                    "key": gkey
+                }
+
+                # base url
+                base_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+
+                # run a request using our params dictionary
+                response = requests.get(base_url, params=params)
+                places_data = response.json()
+
+                n=0
+                # while int(n) > len(places_data):
+                while int(n) < len(places_data["results"]):
+                    try:
+                        price=places_data["results"][int(n)]["price_level"]
+                    except KeyError:
+                        price = "NA"
+                    try:
+                        link=places_data["results"][int(n)]["place_id"]
+                    except KeyError:
+                        link = "NA"
+                    try:
+                        score = places_data["results"][int(n)]["rating"]
+                    except KeyError:
+                        score = "NA"
+                    try:
+                        reviews = places_data["results"][int(n)]["user_ratings_total"]
+                    except KeyError:
+                        reviews = "NA"
+#                     try:
+#                         poi_coord = str(places_data["results"][int(n)]["geometry"]["location"]["lat"]) + "," + str(places_data["results"][int(n)]["geometry"]["location"]["lng"])
+# #                         dist = pd.read_html(f"http://boulter.com/gps/distance/?from={target_coordinates}&to={poi_coord}&units=k")
+# #                         distance = float(str(dist[1][1][1]).split(" ")[0])
+# #                     except IndexError or TimeoutError:
+# #                         distance = "NA"
+#                         drive_url = f"https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins={target_coordinates}&destinations={poi_coord}&key=AIzaSyA-Rjp6nOeJp6815Xt1Kkuxc5XKMiKl_yA"
+#                         drive_res = requests.get(drive_url).json()
+#                         distance = drive_res["rows"][0]["elements"][0]["distance"]["value"]/1000
+#                         duration= int(drive_res["rows"][0]["elements"][0]["duration"]["value"]/60)
+#                     except KeyError:
+#                         distance = "NA"
+#                         drive_dur = "NA"
+                    
+#                     try:
+#                         walk_url = f"https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins={target_coordinates}&destinations={poi_coord}&mode=walking&key=AIzaSyA-Rjp6nOeJp6815Xt1Kkuxc5XKMiKl_yA"
+#                         walk_res = requests.get(walk_url).json()
+#                         distance = walk_res["rows"][0]["elements"][0]["distance"]["value"]/1000
+#                         walk_dur = int(walk_res["rows"][0]["elements"][0]["duration"]["value"]/60)
+#                     except KeyError:
+#                         walk_dur = "NA"
+                    
+#                     try:
+#                         transit_url = f"https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins={target_coordinates}&destinations={poi_coord}&mode=transit&key=AIzaSyA-Rjp6nOeJp6815Xt1Kkuxc5XKMiKl_yA"
+#                         transit_res = requests.get(transit_url).json()
+#                         transit_dur = int(transit_res["rows"][0]["elements"][0]["duration"]["value"]/60)
+#                     except KeyError:
+#                         transit_dur = "NA"
+                    
+                    content = pd.DataFrame ({"depart":target_adr,"poi":target_search,
+                                            "name":[places_data["results"][int(n)]["name"]],
+                                            "score":score,
+                                             "reviews":reviews,
+                                             "price":price,
+                                             "link":link,
+                                            "address":[places_data["results"][int(n)]["vicinity"]]})
+#                                            "distance":distance,
+#                                             "drive":duration,
+#                                             "public":transit_dur,
+#                                             "walk":walk_dur})
+                    records = records.append(content)
+                    n+=1
+        records.reset_index(drop = True,inplace = True)
+        records["link"]=records["link"].apply(lambda x: '<a href="https://www.google.com/maps/place/?q=place_id:{0}">link</a>'.format(x))
+        return (records.to_html(escape=False))
 
     return render_template("xception.html")
 
