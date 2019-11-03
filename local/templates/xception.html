@@ -1,13 +1,42 @@
-<form method="POST" action="/xception">
-    <div class="form-group">
-        <label for="inputDepart">Instagram ID:</label>
-        <input type="text" id="instaid" name="instaid">
-    </div>
-    
-    <div class="form-group">
-        <label for="inputDepart">Origin:</label>
-        <input type="text" id="depart" name="depart">
-    </div>
-    
-    <input type="submit" value="submit">
-</form>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">
+
+    <title>Signin Template for Bootstrap</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/sign-in/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css.css" rel="stylesheet">
+  </head>
+
+  <body class="text-center">
+        <style>
+                body {
+                  background-image: url('https://c.wallhere.com/images/1a/0a/ab28fcb84046fb6970836a324af6-1560003.jpg!d');
+                }
+                </style>
+    <form method= "POST" action="/xception" class="form-signin">
+      <img class="mb-4" src="https://instagram-brand.com/wp-content/uploads/2016/11/Instagram_AppIcon_Aug2017.png?w=300" alt="" width="72" height="72">
+      <h1 class="h3 mb-3 font-weight-normal">What is located near you </h1>  
+      <!-- <label for="inputEmail" class="sr-only">Email address</label> -->
+      <input type="text" id="instaid" class="form-control" placeholder="Instagram" required autofocus>
+      <!-- <label for="inputPassword" class="sr-only">Password</label> -->
+      <input type="password" id="depart" class="form-control" placeholder="Location" required>
+      <!-- <div class="checkbox mb-3"> -->
+        <!-- <label> -->
+          <!-- <input type="checkbox" value="remember-me"> Where are my interests taking me -->
+        <!-- </label> -->
+      <!-- </div> -->
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Go</button>
+      <p class="mt-5 mb-3 text-muted">&copy; 2019 Northwestern Data Science Bootcamp</p>
+    </form>
+  </body>
+</html>
