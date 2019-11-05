@@ -140,7 +140,7 @@ def xception():
         target_radius = 1000
         
         records = pd.DataFrame()
-        target_list = list(set(image_df["predictions"]))[0:5]
+        target_list = image_df.drop_duplicates(subset="predictions", keep="first")["predictions"]
         targets = str(depart).split(",")
         for target in targets:
                 # Build the endpoint URL
@@ -241,8 +241,9 @@ def xception():
         records.reset_index(drop = True,inplace = True)
 #         records["link"]=records["link"].apply(lambda x: '<a href="https://www.google.com/maps/place/?q=place_id:{0}">link</a>'.format(x))
 #         return (records.to_html(escape=False))
+        records["size"] = 10
         px.set_mapbox_access_token("pk.eyJ1IjoidGl2bWU3IiwiYSI6ImNrMWEwZDVtNDI4Zm4zYm1vY3o3Z25zejEifQ._yTPkj3nXTzor72zIevLCQ")
-        fig = px.scatter_mapbox(records, lat="lat", lon="lon", color = "poi", hover_name="name",zoom = 13)
+        fig = px.scatter_mapbox(records, lat="lat", lon="lon", color = "poi", size = "size", hover_name="name",zoom = 13)
         fig.update_layout(autosize=True,width=1500,height=750)
         #                           ,margin=go.layout.Margin(l=50,r=50,b=100,t=100,pad=4))
 
