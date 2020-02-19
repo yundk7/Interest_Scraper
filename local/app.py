@@ -306,8 +306,8 @@ def vgg19():
         image_df["%"] = pcts
         image_df.sort_values("%",ascending = False, inplace = True)
         
-#         from IPython.display import Image
-#         from IPython.core.display import HTML
+        from IPython.display import Image
+        from IPython.core.display import HTML
         
         def path_to_image_html(path):
             return '<img src="'+ path + '" width="300" >'
