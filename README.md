@@ -1,3 +1,5 @@
+# Interest Scraper
+
 Interest Scraper from Instagram
 
 * Scrapes instagram pictures using splinter and using machine learning tools to distinguish
